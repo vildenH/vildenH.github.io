@@ -35,8 +35,220 @@
 </blockquote>
 <h1 id="异步和事件驱动"><a href="#异步和事件驱动" class="headerlink" title="异步和事件驱动"></a>异步和事件驱动</h1><p>Netty 是异步事件驱动的框架，该框架体现为所有的I&#x2F;O操作都是异步的，所有的I&#x2F;O调用会立即返回，并不保证调用成功与否，但是调用会返回ChannelFuture。Netty 会通过 ChannelFuture通知调用是成功了还是失败了，抑或是取消了。</p>
 <h2 id="ChannelFuture"><a href="#ChannelFuture" class="headerlink" title="ChannelFuture"></a>ChannelFuture</h2><p>这里是其中一个顶层类的接口实现，可以看到除了future的isDone以外，还增加了isSuccess，cause等接口</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">                                        +---------------------------+</span><br><span class="line">                                        | Completed successfully    |</span><br><span class="line">                                        +---------------------------+</span><br><span class="line">                                   +----&gt;      isDone() = <span class="literal">true</span>      |</span><br><span class="line">   +--------------------------+    |    |   isSuccess() = <span class="literal">true</span>      |</span><br><span class="line">   |        Uncompleted       |    |    +===========================+</span><br><span class="line">   +--------------------------+    |    | Completed with failure    |</span><br><span class="line">   |      isDone() = <span class="literal">false</span>    |    |    +---------------------------+</span><br><span class="line">   |   isSuccess() = <span class="literal">false</span>    |----+----&gt;      isDone() = <span class="literal">true</span>      |</span><br><span class="line">   | isCancelled() = <span class="literal">false</span>    |    |    |       cause() = non-<span class="literal">null</span>  |</span><br><span class="line">   |       cause() = <span class="literal">null</span>     |    |    +===========================+</span><br><span class="line">   +--------------------------+    |    | Completed by cancellation |</span><br><span class="line">                                   |    +---------------------------+</span><br><span class="line">                                   +----&gt;      isDone() = <span class="literal">true</span>      |</span><br><span class="line">                                        | isCancelled() = <span class="literal">true</span>      |</span><br><span class="line">                                        +---------------------------+</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Future</span>&lt;V&gt; <span class="keyword">extends</span> <span class="title class_">java</span>.util.concurrent.Future&lt;V&gt; &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Returns &#123;<span class="doctag">@code</span> true&#125; if and only if the I/O operation was completed</span></span><br><span class="line"><span class="comment">     * successfully.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">isSuccess</span><span class="params">()</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * returns &#123;<span class="doctag">@code</span> true&#125; if and only if the operation can be cancelled via &#123;<span class="doctag">@link</span> #cancel(boolean)&#125;.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">isCancellable</span><span class="params">()</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Returns the cause of the failed I/O operation if the I/O operation has</span></span><br><span class="line"><span class="comment">     * failed.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> the cause of the failure.</span></span><br><span class="line"><span class="comment">     *         &#123;<span class="doctag">@code</span> null&#125; if succeeded or this future is not</span></span><br><span class="line"><span class="comment">     *         completed yet.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    Throwable <span class="title function_">cause</span><span class="params">()</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Adds the specified listener to this future.  The</span></span><br><span class="line"><span class="comment">     * specified listener is notified when this future is</span></span><br><span class="line"><span class="comment">     * &#123;<span class="doctag">@linkplain</span> #isDone() done&#125;.  If this future is already</span></span><br><span class="line"><span class="comment">     * completed, the specified listener is notified immediately.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    Future&lt;V&gt; <span class="title function_">addListener</span><span class="params">(GenericFutureListener&lt;? extends Future&lt;? <span class="built_in">super</span> V&gt;&gt; listener)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Adds the specified listeners to this future.  The</span></span><br><span class="line"><span class="comment">     * specified listeners are notified when this future is</span></span><br><span class="line"><span class="comment">     * &#123;<span class="doctag">@linkplain</span> #isDone() done&#125;.  If this future is already</span></span><br><span class="line"><span class="comment">     * completed, the specified listeners are notified immediately.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    Future&lt;V&gt; <span class="title function_">addListeners</span><span class="params">(GenericFutureListener&lt;? extends Future&lt;? <span class="built_in">super</span> V&gt;&gt;... listeners)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Removes the first occurrence of the specified listener from this future.</span></span><br><span class="line"><span class="comment">     * The specified listener is no longer notified when this</span></span><br><span class="line"><span class="comment">     * future is &#123;<span class="doctag">@linkplain</span> #isDone() done&#125;.  If the specified</span></span><br><span class="line"><span class="comment">     * listener is not associated with this future, this method</span></span><br><span class="line"><span class="comment">     * does nothing and returns silently.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    Future&lt;V&gt; <span class="title function_">removeListener</span><span class="params">(GenericFutureListener&lt;? extends Future&lt;? <span class="built_in">super</span> V&gt;&gt; listener)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Removes the first occurrence for each of the listeners from this future.</span></span><br><span class="line"><span class="comment">     * The specified listeners are no longer notified when this</span></span><br><span class="line"><span class="comment">     * future is &#123;<span class="doctag">@linkplain</span> #isDone() done&#125;.  If the specified</span></span><br><span class="line"><span class="comment">     * listeners are not associated with this future, this method</span></span><br><span class="line"><span class="comment">     * does nothing and returns silently.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    Future&lt;V&gt; <span class="title function_">removeListeners</span><span class="params">(GenericFutureListener&lt;? extends Future&lt;? <span class="built_in">super</span> V&gt;&gt;... listeners)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Waits for this future until it is done, and rethrows the cause of the failure if this future</span></span><br><span class="line"><span class="comment">     * failed.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    Future&lt;V&gt; <span class="title function_">sync</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Waits for this future until it is done, and rethrows the cause of the failure if this future</span></span><br><span class="line"><span class="comment">     * failed.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    Future&lt;V&gt; <span class="title function_">syncUninterruptibly</span><span class="params">()</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Waits for this future to be completed.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> InterruptedException</span></span><br><span class="line"><span class="comment">     *         if the current thread was interrupted</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    Future&lt;V&gt; <span class="title function_">await</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Waits for this future to be completed without</span></span><br><span class="line"><span class="comment">     * interruption.  This method catches an &#123;<span class="doctag">@link</span> InterruptedException&#125; and</span></span><br><span class="line"><span class="comment">     * discards it silently.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    Future&lt;V&gt; <span class="title function_">awaitUninterruptibly</span><span class="params">()</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Waits for this future to be completed within the</span></span><br><span class="line"><span class="comment">     * specified time limit.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> &#123;<span class="doctag">@code</span> true&#125; if and only if the future was completed within</span></span><br><span class="line"><span class="comment">     *         the specified time limit</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> InterruptedException</span></span><br><span class="line"><span class="comment">     *         if the current thread was interrupted</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">await</span><span class="params">(<span class="type">long</span> timeout, TimeUnit unit)</span> <span class="keyword">throws</span> InterruptedException;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Waits for this future to be completed within the</span></span><br><span class="line"><span class="comment">     * specified time limit.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> &#123;<span class="doctag">@code</span> true&#125; if and only if the future was completed within</span></span><br><span class="line"><span class="comment">     *         the specified time limit</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> InterruptedException</span></span><br><span class="line"><span class="comment">     *         if the current thread was interrupted</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">await</span><span class="params">(<span class="type">long</span> timeoutMillis)</span> <span class="keyword">throws</span> InterruptedException;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Waits for this future to be completed within the</span></span><br><span class="line"><span class="comment">     * specified time limit without interruption.  This method catches an</span></span><br><span class="line"><span class="comment">     * &#123;<span class="doctag">@link</span> InterruptedException&#125; and discards it silently.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> &#123;<span class="doctag">@code</span> true&#125; if and only if the future was completed within</span></span><br><span class="line"><span class="comment">     *         the specified time limit</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">awaitUninterruptibly</span><span class="params">(<span class="type">long</span> timeout, TimeUnit unit)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Waits for this future to be completed within the</span></span><br><span class="line"><span class="comment">     * specified time limit without interruption.  This method catches an</span></span><br><span class="line"><span class="comment">     * &#123;<span class="doctag">@link</span> InterruptedException&#125; and discards it silently.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> &#123;<span class="doctag">@code</span> true&#125; if and only if the future was completed within</span></span><br><span class="line"><span class="comment">     *         the specified time limit</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">awaitUninterruptibly</span><span class="params">(<span class="type">long</span> timeoutMillis)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Return the result without blocking. If the future is not done yet this will return &#123;<span class="doctag">@code</span> null&#125;.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * As it is possible that a &#123;<span class="doctag">@code</span> null&#125; value is used to mark the future as successful you also need to check</span></span><br><span class="line"><span class="comment">     * if the future is really done with &#123;<span class="doctag">@link</span> #isDone()&#125; and not relay on the returned &#123;<span class="doctag">@code</span> null&#125; value.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    V <span class="title function_">getNow</span><span class="params">()</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * &#123;<span class="doctag">@inheritDoc</span>&#125;</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * If the cancellation was successful it will fail the future with an &#123;<span class="doctag">@link</span> CancellationException&#125;.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">cancel</span><span class="params">(<span class="type">boolean</span> mayInterruptIfRunning)</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">ChannelFuture</span> <span class="keyword">extends</span> <span class="title class_">Future</span>&lt;Void&gt; &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Returns a channel where the I/O operation associated with this</span></span><br><span class="line"><span class="comment">     * future takes place.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    Channel <span class="title function_">channel</span><span class="params">()</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    ChannelFuture <span class="title function_">addListener</span><span class="params">(GenericFutureListener&lt;? extends Future&lt;? <span class="built_in">super</span> Void&gt;&gt; listener)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    ChannelFuture <span class="title function_">addListeners</span><span class="params">(GenericFutureListener&lt;? extends Future&lt;? <span class="built_in">super</span> Void&gt;&gt;... listeners)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    ChannelFuture <span class="title function_">removeListener</span><span class="params">(GenericFutureListener&lt;? extends Future&lt;? <span class="built_in">super</span> Void&gt;&gt; listener)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    ChannelFuture <span class="title function_">removeListeners</span><span class="params">(GenericFutureListener&lt;? extends Future&lt;? <span class="built_in">super</span> Void&gt;&gt;... listeners)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    ChannelFuture <span class="title function_">sync</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    ChannelFuture <span class="title function_">syncUninterruptibly</span><span class="params">()</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    ChannelFuture <span class="title function_">await</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    ChannelFuture <span class="title function_">awaitUninterruptibly</span><span class="params">()</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Returns &#123;<span class="doctag">@code</span> true&#125; if this &#123;<span class="doctag">@link</span> ChannelFuture&#125; is a void future and so not allow to call any of the</span></span><br><span class="line"><span class="comment">     * following methods:</span></span><br><span class="line"><span class="comment">     * &lt;ul&gt;</span></span><br><span class="line"><span class="comment">     *     &lt;li&gt;&#123;<span class="doctag">@link</span> #addListener(GenericFutureListener)&#125;&lt;/li&gt;</span></span><br><span class="line"><span class="comment">     *     &lt;li&gt;&#123;<span class="doctag">@link</span> #addListeners(GenericFutureListener[])&#125;&lt;/li&gt;</span></span><br><span class="line"><span class="comment">     *     &lt;li&gt;&#123;<span class="doctag">@link</span> #await()&#125;&lt;/li&gt;</span></span><br><span class="line"><span class="comment">     *     &lt;li&gt;&#123;<span class="doctag">@link</span> #await(long, TimeUnit)&#125; ()&#125;&lt;/li&gt;</span></span><br><span class="line"><span class="comment">     *     &lt;li&gt;&#123;<span class="doctag">@link</span> #await(long)&#125; ()&#125;&lt;/li&gt;</span></span><br><span class="line"><span class="comment">     *     &lt;li&gt;&#123;<span class="doctag">@link</span> #awaitUninterruptibly()&#125;&lt;/li&gt;</span></span><br><span class="line"><span class="comment">     *     &lt;li&gt;&#123;<span class="doctag">@link</span> #sync()&#125;&lt;/li&gt;</span></span><br><span class="line"><span class="comment">     *     &lt;li&gt;&#123;<span class="doctag">@link</span> #syncUninterruptibly()&#125;&lt;/li&gt;</span></span><br><span class="line"><span class="comment">     * &lt;/ul&gt;</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">isVoid</span><span class="params">()</span>;</span><br><span class="line">    </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<pre><code class="java">
+                                        +---------------------------+
+                                        | Completed successfully    |
+                                        +---------------------------+
+                                   +----&gt;      isDone() = true      |
+   +--------------------------+    |    |   isSuccess() = true      |
+   |        Uncompleted       |    |    +===========================+
+   +--------------------------+    |    | Completed with failure    |
+   |      isDone() = false    |    |    +---------------------------+
+   |   isSuccess() = false    |----+----&gt;      isDone() = true      |
+   | isCancelled() = false    |    |    |       cause() = non-null  |
+   |       cause() = null     |    |    +===========================+
+   +--------------------------+    |    | Completed by cancellation |
+                                   |    +---------------------------+
+                                   +----&gt;      isDone() = true      |
+                                        | isCancelled() = true      |
+                                        +---------------------------+
 
+public interface Future&lt;V&gt; extends java.util.concurrent.Future&lt;V&gt; &#123;
+
+    /**
+     * Returns &#123;@code true&#125; if and only if the I/O operation was completed
+     * successfully.
+     */
+    boolean isSuccess();
+
+    /**
+     * returns &#123;@code true&#125; if and only if the operation can be cancelled via &#123;@link #cancel(boolean)&#125;.
+     */
+    boolean isCancellable();
+
+    /**
+     * Returns the cause of the failed I/O operation if the I/O operation has
+     * failed.
+     *
+     * @return the cause of the failure.
+     *         &#123;@code null&#125; if succeeded or this future is not
+     *         completed yet.
+     */
+    Throwable cause();
+
+    /**
+     * Adds the specified listener to this future.  The
+     * specified listener is notified when this future is
+     * &#123;@linkplain #isDone() done&#125;.  If this future is already
+     * completed, the specified listener is notified immediately.
+     */
+    Future&lt;V&gt; addListener(GenericFutureListener&lt;? extends Future&lt;? super V&gt;&gt; listener);
+
+    /**
+     * Adds the specified listeners to this future.  The
+     * specified listeners are notified when this future is
+     * &#123;@linkplain #isDone() done&#125;.  If this future is already
+     * completed, the specified listeners are notified immediately.
+     */
+    Future&lt;V&gt; addListeners(GenericFutureListener&lt;? extends Future&lt;? super V&gt;&gt;... listeners);
+
+    /**
+     * Removes the first occurrence of the specified listener from this future.
+     * The specified listener is no longer notified when this
+     * future is &#123;@linkplain #isDone() done&#125;.  If the specified
+     * listener is not associated with this future, this method
+     * does nothing and returns silently.
+     */
+    Future&lt;V&gt; removeListener(GenericFutureListener&lt;? extends Future&lt;? super V&gt;&gt; listener);
+
+    /**
+     * Removes the first occurrence for each of the listeners from this future.
+     * The specified listeners are no longer notified when this
+     * future is &#123;@linkplain #isDone() done&#125;.  If the specified
+     * listeners are not associated with this future, this method
+     * does nothing and returns silently.
+     */
+    Future&lt;V&gt; removeListeners(GenericFutureListener&lt;? extends Future&lt;? super V&gt;&gt;... listeners);
+
+    /**
+     * Waits for this future until it is done, and rethrows the cause of the failure if this future
+     * failed.
+     */
+    Future&lt;V&gt; sync() throws InterruptedException;
+
+    /**
+     * Waits for this future until it is done, and rethrows the cause of the failure if this future
+     * failed.
+     */
+    Future&lt;V&gt; syncUninterruptibly();
+
+    /**
+     * Waits for this future to be completed.
+     *
+     * @throws InterruptedException
+     *         if the current thread was interrupted
+     */
+    Future&lt;V&gt; await() throws InterruptedException;
+
+    /**
+     * Waits for this future to be completed without
+     * interruption.  This method catches an &#123;@link InterruptedException&#125; and
+     * discards it silently.
+     */
+    Future&lt;V&gt; awaitUninterruptibly();
+
+    /**
+     * Waits for this future to be completed within the
+     * specified time limit.
+     *
+     * @return &#123;@code true&#125; if and only if the future was completed within
+     *         the specified time limit
+     *
+     * @throws InterruptedException
+     *         if the current thread was interrupted
+     */
+    boolean await(long timeout, TimeUnit unit) throws InterruptedException;
+
+    /**
+     * Waits for this future to be completed within the
+     * specified time limit.
+     *
+     * @return &#123;@code true&#125; if and only if the future was completed within
+     *         the specified time limit
+     *
+     * @throws InterruptedException
+     *         if the current thread was interrupted
+     */
+    boolean await(long timeoutMillis) throws InterruptedException;
+
+    /**
+     * Waits for this future to be completed within the
+     * specified time limit without interruption.  This method catches an
+     * &#123;@link InterruptedException&#125; and discards it silently.
+     *
+     * @return &#123;@code true&#125; if and only if the future was completed within
+     *         the specified time limit
+     */
+    boolean awaitUninterruptibly(long timeout, TimeUnit unit);
+
+    /**
+     * Waits for this future to be completed within the
+     * specified time limit without interruption.  This method catches an
+     * &#123;@link InterruptedException&#125; and discards it silently.
+     *
+     * @return &#123;@code true&#125; if and only if the future was completed within
+     *         the specified time limit
+     */
+    boolean awaitUninterruptibly(long timeoutMillis);
+
+    /**
+     * Return the result without blocking. If the future is not done yet this will return &#123;@code null&#125;.
+     *
+     * As it is possible that a &#123;@code null&#125; value is used to mark the future as successful you also need to check
+     * if the future is really done with &#123;@link #isDone()&#125; and not relay on the returned &#123;@code null&#125; value.
+     */
+    V getNow();
+
+    /**
+     * &#123;@inheritDoc&#125;
+     *
+     * If the cancellation was successful it will fail the future with an &#123;@link CancellationException&#125;.
+     */
+    @Override
+    boolean cancel(boolean mayInterruptIfRunning);
+&#125;
+
+
+
+public interface ChannelFuture extends Future&lt;Void&gt; &#123;
+
+    /**
+     * Returns a channel where the I/O operation associated with this
+     * future takes place.
+     */
+    Channel channel();
+
+    @Override
+    ChannelFuture addListener(GenericFutureListener&lt;? extends Future&lt;? super Void&gt;&gt; listener);
+
+    @Override
+    ChannelFuture addListeners(GenericFutureListener&lt;? extends Future&lt;? super Void&gt;&gt;... listeners);
+
+    @Override
+    ChannelFuture removeListener(GenericFutureListener&lt;? extends Future&lt;? super Void&gt;&gt; listener);
+
+    @Override
+    ChannelFuture removeListeners(GenericFutureListener&lt;? extends Future&lt;? super Void&gt;&gt;... listeners);
+
+    @Override
+    ChannelFuture sync() throws InterruptedException;
+
+    @Override
+    ChannelFuture syncUninterruptibly();
+
+    @Override
+    ChannelFuture await() throws InterruptedException;
+
+    @Override
+    ChannelFuture awaitUninterruptibly();
+
+    /**
+     * Returns &#123;@code true&#125; if this &#123;@link ChannelFuture&#125; is a void future and so not allow to call any of the
+     * following methods:
+     * &lt;ul&gt;
+     *     &lt;li&gt;&#123;@link #addListener(GenericFutureListener)&#125;&lt;/li&gt;
+     *     &lt;li&gt;&#123;@link #addListeners(GenericFutureListener[])&#125;&lt;/li&gt;
+     *     &lt;li&gt;&#123;@link #await()&#125;&lt;/li&gt;
+     *     &lt;li&gt;&#123;@link #await(long, TimeUnit)&#125; ()&#125;&lt;/li&gt;
+     *     &lt;li&gt;&#123;@link #await(long)&#125; ()&#125;&lt;/li&gt;
+     *     &lt;li&gt;&#123;@link #awaitUninterruptibly()&#125;&lt;/li&gt;
+     *     &lt;li&gt;&#123;@link #sync()&#125;&lt;/li&gt;
+     *     &lt;li&gt;&#123;@link #syncUninterruptibly()&#125;&lt;/li&gt;
+     * &lt;/ul&gt;
+     */
+    boolean isVoid();
+    
+</code></pre>
 <p>ChannelFuture类似Java并发包的future类，不过功能有很多增强，比如对成功，失败的类型有区分，还有监听器的回调功能</p>
 <p>刚创建的时候是uncomplete状态。当异步任务执行完后，会修改该类的状态。判断的方法有</p>
 <ul>
@@ -47,11 +259,120 @@
 </ul>
 <h2 id="DefaultPromise"><a href="#DefaultPromise" class="headerlink" title="DefaultPromise"></a>DefaultPromise</h2><p>DefaultPromise是ChannelFuture的实现，这个是一个默认的实现方法</p>
 <p>通过以下几个方法可以看到各个功能的实现方法</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">public</span> Promise&lt;V&gt; <span class="title function_">setSuccess</span><span class="params">(V result)</span> &#123;</span><br><span class="line">    <span class="comment">//CAS更新RESULT_UPDATER的状态,</span></span><br><span class="line">    <span class="keyword">if</span> (setSuccess0(result)) &#123;</span><br><span class="line">        <span class="comment">//通知监听器</span></span><br><span class="line">        notifyListeners();</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">this</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalStateException</span>(<span class="string">&quot;complete already: &quot;</span> + <span class="built_in">this</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="type">boolean</span> <span class="title function_">setValue0</span><span class="params">(Object objResult)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (RESULT_UPDATER.compareAndSet(<span class="built_in">this</span>, <span class="literal">null</span>, objResult) ||</span><br><span class="line">        RESULT_UPDATER.compareAndSet(<span class="built_in">this</span>, UNCANCELLABLE, objResult)) &#123;</span><br><span class="line">        checkNotifyWaiters();</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//如果有waiter的话唤醒waiter</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title function_">checkNotifyWaiters</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (waiters &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        notifyAll();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">notifyListeners</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">EventExecutor</span> <span class="variable">executor</span> <span class="operator">=</span> executor();</span><br><span class="line">    <span class="comment">//判断当前线程和future所执行的，是不是同一个线程，是就直接执行</span></span><br><span class="line">    <span class="keyword">if</span> (executor.inEventLoop()) &#123;</span><br><span class="line">        <span class="keyword">final</span> <span class="type">InternalThreadLocalMap</span> <span class="variable">threadLocals</span> <span class="operator">=</span> InternalThreadLocalMap.get();</span><br><span class="line">        <span class="keyword">final</span> <span class="type">int</span> <span class="variable">stackDepth</span> <span class="operator">=</span> threadLocals.futureListenerStackDepth();</span><br><span class="line">        <span class="keyword">if</span> (stackDepth &lt; MAX_LISTENER_STACK_DEPTH) &#123;</span><br><span class="line">            threadLocals.setFutureListenerStackDepth(stackDepth + <span class="number">1</span>);</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                notifyListenersNow();</span><br><span class="line">            &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">                threadLocals.setFutureListenerStackDepth(stackDepth);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//不是的话，把当前这个任务丢给他所属的executor来执行</span></span><br><span class="line">    safeExecute(executor, <span class="keyword">new</span> <span class="title class_">Runnable</span>() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> &#123;</span><br><span class="line">            notifyListenersNow();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//添加监听器的方法</span></span><br><span class="line"><span class="comment">//Netty是异步的执行的，所以也兼容了添加监听器时当前任务可能是已经完成的情况，在添加监听器时，如果该任务已经完成了，那么也会调用notifyListeners的操作。所以可以放心使用监听器，即使异步任务已经完成了也可以挂载监听任务</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> Promise&lt;V&gt; <span class="title function_">addListener</span><span class="params">(GenericFutureListener&lt;? extends Future&lt;? <span class="built_in">super</span> V&gt;&gt; listener)</span> &#123;</span><br><span class="line">    checkNotNull(listener, <span class="string">&quot;listener&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">synchronized</span> (<span class="built_in">this</span>) &#123;</span><br><span class="line">        addListener0(listener);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (isDone()) &#123;</span><br><span class="line">        notifyListeners();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<pre><code class="java">    
+    public Promise&lt;V&gt; setSuccess(V result) &#123;
+        //CAS更新RESULT_UPDATER的状态,
+        if (setSuccess0(result)) &#123;
+            //通知监听器
+            notifyListeners();
+            return this;
+        &#125;
+        throw new IllegalStateException(&quot;complete already: &quot; + this);
+    &#125;
 
+
+    private boolean setValue0(Object objResult) &#123;
+        if (RESULT_UPDATER.compareAndSet(this, null, objResult) ||
+            RESULT_UPDATER.compareAndSet(this, UNCANCELLABLE, objResult)) &#123;
+            checkNotifyWaiters();
+            return true;
+        &#125;
+        return false;
+    &#125;
+
+    //如果有waiter的话唤醒waiter
+    private synchronized void checkNotifyWaiters() &#123;
+        if (waiters &gt; 0) &#123;
+            notifyAll();
+        &#125;
+    &#125;
+
+
+    private void notifyListeners() &#123;
+        EventExecutor executor = executor();
+        //判断当前线程和future所执行的，是不是同一个线程，是就直接执行
+        if (executor.inEventLoop()) &#123;
+            final InternalThreadLocalMap threadLocals = InternalThreadLocalMap.get();
+            final int stackDepth = threadLocals.futureListenerStackDepth();
+            if (stackDepth &lt; MAX_LISTENER_STACK_DEPTH) &#123;
+                threadLocals.setFutureListenerStackDepth(stackDepth + 1);
+                try &#123;
+                    notifyListenersNow();
+                &#125; finally &#123;
+                    threadLocals.setFutureListenerStackDepth(stackDepth);
+                &#125;
+                return;
+            &#125;
+        &#125;
+        //不是的话，把当前这个任务丢给他所属的executor来执行
+        safeExecute(executor, new Runnable() &#123;
+            @Override
+            public void run() &#123;
+                notifyListenersNow();
+            &#125;
+        &#125;);
+    &#125;
+
+    //添加监听器的方法
+    //Netty是异步的执行的，所以也兼容了添加监听器时当前任务可能是已经完成的情况，在添加监听器时，如果该任务已经完成了，那么也会调用notifyListeners的操作。所以可以放心使用监听器，即使异步任务已经完成了也可以挂载监听任务
+    @Override
+    public Promise&lt;V&gt; addListener(GenericFutureListener&lt;? extends Future&lt;? super V&gt;&gt; listener) &#123;
+        checkNotNull(listener, &quot;listener&quot;);
+
+        synchronized (this) &#123;
+            addListener0(listener);
+        &#125;
+
+        if (isDone()) &#123;
+            notifyListeners();
+        &#125;
+
+        return this;
+    &#125;
+</code></pre>
 <h2 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h2><h3 id="AbstractBootStrap-doBind"><a href="#AbstractBootStrap-doBind" class="headerlink" title="AbstractBootStrap.doBind()"></a>AbstractBootStrap.doBind()</h3><p>以Netty的启动过程为例子，看看future类是怎么用的</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">private</span> ChannelFuture <span class="title function_">doBind</span><span class="params">(<span class="keyword">final</span> SocketAddress localAddress)</span> &#123;</span><br><span class="line">    <span class="comment">//启动过程先拿到initAndRegister的Future</span></span><br><span class="line">    <span class="keyword">final</span> <span class="type">ChannelFuture</span> <span class="variable">regFuture</span> <span class="operator">=</span> initAndRegister();</span><br><span class="line">    <span class="keyword">final</span> <span class="type">Channel</span> <span class="variable">channel</span> <span class="operator">=</span> regFuture.channel();</span><br><span class="line">    <span class="keyword">if</span> (regFuture.cause() != <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> regFuture;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//如果这个时候已经注册完毕了，那就直接调用</span></span><br><span class="line">    <span class="keyword">if</span> (regFuture.isDone()) &#123;</span><br><span class="line">        <span class="comment">// At this point we know that the registration was complete and successful.</span></span><br><span class="line">        <span class="comment">// 创建一个新的promise promise和future的差别就是promise是可写可修改状态的</span></span><br><span class="line">        <span class="type">ChannelPromise</span> <span class="variable">promise</span> <span class="operator">=</span> channel.newPromise();</span><br><span class="line">        <span class="comment">//doBind的是一个异步操作，下面直接就返回了这个promise了</span></span><br><span class="line">        <span class="comment">//等doBind操作完后修改promise的状态</span></span><br><span class="line">        doBind0(regFuture, channel, localAddress, promise);</span><br><span class="line">        <span class="keyword">return</span> promise;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// Registration future is almost always fulfilled already, but just in case it&#x27;s not.</span></span><br><span class="line">        <span class="comment">//这里也好理解，因为之前判断注册任务没有完成，所以这里就挂载一个监听器，如果完成了的话就开始doBind的操作，从而实现整个过程都是异步的</span></span><br><span class="line">        <span class="keyword">final</span> <span class="type">PendingRegistrationPromise</span> <span class="variable">promise</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">PendingRegistrationPromise</span>(channel);</span><br><span class="line">        regFuture.addListener(<span class="keyword">new</span> <span class="title class_">ChannelFutureListener</span>() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">operationComplete</span><span class="params">(ChannelFuture future)</span> <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">                <span class="type">Throwable</span> <span class="variable">cause</span> <span class="operator">=</span> future.cause();</span><br><span class="line">                <span class="keyword">if</span> (cause != <span class="literal">null</span>) &#123;</span><br><span class="line">                    <span class="comment">// Registration on the EventLoop failed so fail the ChannelPromise directly to not cause an</span></span><br><span class="line">                    <span class="comment">// IllegalStateException once we try to access the EventLoop of the Channel.</span></span><br><span class="line">                    promise.setFailure(cause);</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    <span class="comment">// Registration was successful, so set the correct executor to use.</span></span><br><span class="line">                    <span class="comment">// See https://github.com/netty/netty/issues/2586</span></span><br><span class="line">                    promise.registered();</span><br><span class="line"></span><br><span class="line">                    doBind0(regFuture, channel, localAddress, promise);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">        <span class="keyword">return</span> promise;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<pre><code class="java">    
+    private ChannelFuture doBind(final SocketAddress localAddress) &#123;
+        //启动过程先拿到initAndRegister的Future
+        final ChannelFuture regFuture = initAndRegister();
+        final Channel channel = regFuture.channel();
+        if (regFuture.cause() != null) &#123;
+            return regFuture;
+        &#125;
+        //如果这个时候已经注册完毕了，那就直接调用
+        if (regFuture.isDone()) &#123;
+            // At this point we know that the registration was complete and successful.
+            // 创建一个新的promise promise和future的差别就是promise是可写可修改状态的
+            ChannelPromise promise = channel.newPromise();
+            //doBind的是一个异步操作，下面直接就返回了这个promise了
+            //等doBind操作完后修改promise的状态
+            doBind0(regFuture, channel, localAddress, promise);
+            return promise;
+        &#125; else &#123;
+            // Registration future is almost always fulfilled already, but just in case it&#39;s not.
+            //这里也好理解，因为之前判断注册任务没有完成，所以这里就挂载一个监听器，如果完成了的话就开始doBind的操作，从而实现整个过程都是异步的
+            final PendingRegistrationPromise promise = new PendingRegistrationPromise(channel);
+            regFuture.addListener(new ChannelFutureListener() &#123;
+                @Override
+                public void operationComplete(ChannelFuture future) throws Exception &#123;
+                    Throwable cause = future.cause();
+                    if (cause != null) &#123;
+                        // Registration on the EventLoop failed so fail the ChannelPromise directly to not cause an
+                        // IllegalStateException once we try to access the EventLoop of the Channel.
+                        promise.setFailure(cause);
+                    &#125; else &#123;
+                        // Registration was successful, so set the correct executor to use.
+                        // See https://github.com/netty/netty/issues/2586
+                        promise.registered();
 
+                        doBind0(regFuture, channel, localAddress, promise);
+                    &#125;
+                &#125;
+            &#125;);
+            return promise;
+        &#125;
+    &#125;
+</code></pre>
 
     </div>
 
