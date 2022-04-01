@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="google-site-verification" content="w8blT1tqo50kr-tigHqsJ3RrcDwCYOkvuvBLBEB-a20" />
+    <title>
+        vilden &#39;s blog
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/github-dark-dimmed.min.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-angle-double-left replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            Druid-getConnection性能优化-removeAbandoned功能
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <h1 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h1><p><img src="/2022/03/30/2022-03-30-druid-getConnection%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-removeAbandoned%E5%8A%9F%E8%83%BD/2022-03-30-12-03-16.png"></p>
+<p>在生成服务火焰图的时候，发现了服务在getConnection的时候出现了平台，其中会瓶颈点在Thread.getStackTrace()</p>
+<blockquote>
+<p>Druid 版本 1.0.12</p>
+</blockquote>
+<h1 id="看下源码"><a href="#看下源码" class="headerlink" title="看下源码"></a>看下源码</h1><p>可以看到如果，isRemoveAbandoned()为true时，会调用getStackTrace()获取当前线程信息，记录在类中，这个是一个比较慢的操作，也是慢的原因</p>
+<pre><code class="java">    public DruidPooledConnection getConnectionDirect(long maxWaitMillis) throws SQLException &#123;
+        int notFullTimeoutRetryCnt = 0;
+        for (;;) &#123;
+            // handle notFullTimeoutRetry
+            DruidPooledConnection poolableConnection;
+            try &#123;
+                poolableConnection = getConnectionInternal(maxWaitMillis);
+            &#125; catch (GetConnectionTimeoutException ex) &#123;
+                if (notFullTimeoutRetryCnt &lt;= this.notFullTimeoutRetryCount &amp;&amp; !isFull()) &#123;
+                    notFullTimeoutRetryCnt++;
+                    if (LOG.isWarnEnabled()) &#123;
+                        LOG.warn(&quot;not full timeout retry : &quot; + notFullTimeoutRetryCnt);
+                    &#125;
+                    continue;
+                &#125;
+                throw ex;
+            &#125;
+
+            if (isTestOnBorrow()) &#123;
+                boolean validate = testConnectionInternal(poolableConnection.getConnection());
+                if (!validate) &#123;
+                    if (LOG.isDebugEnabled()) &#123;
+                        LOG.debug(&quot;skip not validate connection.&quot;);
+                    &#125;
+
+                    Connection realConnection = poolableConnection.getConnection();
+                    discardConnection(realConnection);
+                    continue;
+                &#125;
+            &#125; else &#123;
+                Connection realConnection = poolableConnection.getConnection();
+                if (realConnection.isClosed()) &#123;
+                    discardConnection(null); // 传入null，避免重复关闭
+                    continue;
+                &#125;
+
+                if (isTestWhileIdle()) &#123;
+                    final long currentTimeMillis = System.currentTimeMillis();
+                    final long lastActiveTimeMillis = poolableConnection.getConnectionHolder().getLastActiveTimeMillis();
+                    final long idleMillis = currentTimeMillis - lastActiveTimeMillis;
+                    long timeBetweenEvictionRunsMillis = this.getTimeBetweenEvictionRunsMillis();
+                    if (timeBetweenEvictionRunsMillis &lt;= 0) &#123;
+                        timeBetweenEvictionRunsMillis = DEFAULT_TIME_BETWEEN_EVICTION_RUNS_MILLIS;
+                    &#125;
+
+                    if (idleMillis &gt;= timeBetweenEvictionRunsMillis) &#123;
+                        boolean validate = testConnectionInternal(poolableConnection.getConnection());
+                        if (!validate) &#123;
+                            if (LOG.isDebugEnabled()) &#123;
+                                LOG.debug(&quot;skip not validate connection.&quot;);
+                            &#125;
+
+                            discardConnection(realConnection);
+                            continue;
+                        &#125;
+                    &#125;
+                &#125;
+            &#125;
+
+            if (isRemoveAbandoned()) &#123;
+                StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+                poolableConnection.setConnectStackTrace(stackTrace);
+                poolableConnection.setConnectedTimeNano();
+                poolableConnection.setTraceEnable(true);
+
+                synchronized (activeConnections) &#123;
+                    activeConnections.put(poolableConnection, PRESENT);
+                &#125;
+            &#125;
+
+            if (!this.isDefaultAutoCommit()) &#123;
+                poolableConnection.setAutoCommit(false);
+            &#125;
+
+            return poolableConnection;
+        &#125;
+    &#125;
+</code></pre>
+<h1 id="removeAbandoned-功能"><a href="#removeAbandoned-功能" class="headerlink" title="removeAbandoned 功能"></a>removeAbandoned 功能</h1><p>这个功能是干什么的呢？实际上Druid提供了一个功能，用于，如果开启了这个功能，</p>
+<h1 id="优化"><a href="#优化" class="headerlink" title="优化"></a>优化</h1><p>这个功能是默认开启的，如果没有必要的话，关闭掉这个功能就好了~~</p>
+<blockquote>
+<p>据说单个拿链接的时间可以缩短十分之一~</p>
+</blockquote>
+
+    </div>
+
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2022 <a class="flink" target="_blank" rel="noopener" href="https://hexo.io">Hexo</a>-<a class="flink">Hao</a>.
+        <!-- <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label> -->
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+
+<script src="/libs/highlightjs-line-numbers/highlightjs-line-numbers.min.js"></script>
+
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>
