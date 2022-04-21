@@ -114,7 +114,9 @@
         &#125;
     &#125;
 </code></pre>
-<h1 id="removeAbandoned-功能"><a href="#removeAbandoned-功能" class="headerlink" title="removeAbandoned 功能"></a>removeAbandoned 功能</h1><p>这个功能是干什么的呢？实际上Druid提供了一个功能，用于，如果开启了这个功能，</p>
+<h1 id="removeAbandoned-功能"><a href="#removeAbandoned-功能" class="headerlink" title="removeAbandoned 功能"></a>removeAbandoned 功能</h1><p>这个功能是干什么的呢？<br>实际上是Druid用于定时检测是不是有申请但是没有归还的链接的，如果一个链接拿走了，但是超过时间没有归还，那就这个功能会自动回收。本质是为了防止连接泄漏的。</p>
+<p>但如果开启了这个功能，在每次获取链接的时候都会尝试获取当前线程栈，获取当前线程栈的调用是比较消耗性能的。</p>
+<p>而且理论上目前大多数应用都是基于Mybatis或者Spring框架使用DataSource的，一般不会有裸用dataSource的情况，所以也用不上这个功能，徒增了消耗，所以当前功能也不是很有必要。想不通为啥会默认开启…</p>
 <h1 id="优化"><a href="#优化" class="headerlink" title="优化"></a>优化</h1><p>这个功能是默认开启的，如果没有必要的话，关闭掉这个功能就好了~~</p>
 <blockquote>
 <p>据说单个拿链接的时间可以缩短十分之一~</p>
